@@ -29,6 +29,7 @@ export async function createRoom(hostName, gender, playerId) {
     currentPlayerIndex: 0,
     currentCard: null,
     usedCardIds: [],
+    customCards: [],
     settings: {
       maxLevel: 2,
       allowTargetedCards: true,
@@ -98,4 +99,12 @@ export async function updateRoomSettings(code, settings) {
 
 export async function markPlayerDrink(code, players) {
   await updateDoc(doc(db, "rooms", code), { players });
+}
+
+export async function addRoomCustomCard(code, card) {
+  await updateDoc(doc(db, "rooms", code), { customCards: arrayUnion(card) });
+}
+
+export async function setRoomCustomCards(code, customCards) {
+  await updateDoc(doc(db, "rooms", code), { customCards });
 }

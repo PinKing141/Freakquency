@@ -4,6 +4,7 @@ import { addPlayer, removePlayer, resetPlayers } from './core/playerManager.js';
 import { drawCard, drawCardForRoom } from './core/cardDrawer.js';
 import { advanceTurn, resetTurn } from './core/turnManager.js';
 import { clearPlayers } from './core/storage.js';
+import { customCards, addCustomCard, removeCustomCard, buildCustomCard } from './core/customCards.js';
 import { showScreen } from './ui/screens.js';
 import { renderCard, renderRoomCard } from './ui/renderCard.js';
 import { renderPlayers, renderScores } from './ui/renderPlayers.js';
@@ -19,12 +20,14 @@ import {
   updateCurrentCard,
   advanceRoomTurn,
   updateRoomSettings,
-  markPlayerDrink
+  markPlayerDrink,
+  addRoomCustomCard,
+  setRoomCustomCards
 } from './firebase/roomService.js';
 
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 // State
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 
 let mpMode      = false;
 let roomCode    = null;
@@ -43,15 +46,39 @@ const userReady = loginGuest()
   .then(() => waitForUser())
   .catch(err => { console.error('Firebase auth failed:', err); }); // solo still works
 
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 // Solo helpers
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 
 function refreshPlayers() {
   renderPlayers(state.players, index => {
     removePlayer(index);
     refreshPlayers();
     renderScores(state.players);
+  });
+}
+
+// Render a list of custom cards into a <ul>, with a remove handler per item.
+function renderCardList(ul, list, onRemove) {
+  ul.innerHTML = '';
+  list.forEach(c => {
+    const li = document.createElement('li');
+    const info = document.createElement('span');
+    info.innerHTML = `<span class="tag">L${c.level}</span> ${escapeHtml(c.text)}`;
+    const btn = document.createElement('button');
+    btn.className = 'remove-player';
+    btn.textContent = 'Remove';
+    btn.onclick = () => onRemove(c);
+    li.appendChild(info);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+function refreshCustomCards() {
+  renderCardList(document.querySelector('#customList'), customCards, c => {
+    removeCustomCard(c.id);
+    refreshCustomCards();
   });
 }
 
@@ -69,9 +96,9 @@ function handleNextTurn(scored) {
   handleDrawCard();
 }
 
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 // Multiplayer helpers
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 
 function onRoomUpdate(room) {
   if (!room) return;
@@ -110,6 +137,13 @@ function updateWaitingScreen(room) {
   document.querySelector('#startMultiGame').style.display  = isHost ? 'block' : 'none';
   document.querySelector('#waitingForHost').style.display  = isHost ? 'none'  : 'block';
   document.querySelector('#hostSettings').style.display    = isHost ? 'block' : 'none';
+
+  renderCardList(document.querySelector('#mpCustomList'), room.customCards || [], async c => {
+    if (!roomData || roomData.hostId !== myPlayerId) return;
+    const next = (roomData.customCards || []).filter(x => x.id !== c.id);
+    try { await setRoomCustomCards(roomCode, next); }
+    catch (err) { console.error('Remove custom card failed:', err); }
+  });
 }
 
 function setupMultiplayerGameUI() {
@@ -165,9 +199,9 @@ function cleanupRoom() {
   document.querySelector('#backSetup').textContent = 'Setup';
 }
 
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 // Event bindings — solo
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 
 document.querySelector('#startSetup').onclick = () => showScreen('setup');
 
@@ -195,6 +229,19 @@ document.querySelector('#addPlayer').onclick = () => {
 
 document.querySelector('#playerName').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.querySelector('#addPlayer').click();
+});
+
+document.querySelector('#addCustomCard').onclick = () => {
+  const input = document.querySelector('#customText');
+  const text = input.value.trim();
+  if (!text) return alert('Type a prompt first.');
+  addCustomCard({ text, level: document.querySelector('#customLevel').value });
+  input.value = '';
+  refreshCustomCards();
+};
+
+document.querySelector('#customText').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.querySelector('#addCustomCard').click();
 });
 
 document.querySelector('#beginGame').onclick = () => {
@@ -228,9 +275,9 @@ document.querySelector('#resetAll').onclick = () => {
   renderScores(state.players);
 };
 
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 // Event bindings — multiplayer
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 
 document.querySelector('#startMultiplayer').onclick = () => showScreen('lobby');
 document.querySelector('#lobbyBack').onclick        = () => showScreen('start');
@@ -290,14 +337,30 @@ document.querySelector('#startMultiGame').onclick = async () => {
   await startGame(roomCode);
 };
 
+document.querySelector('#mpAddCustomCard').onclick = async () => {
+  if (!roomData || roomData.hostId !== myPlayerId) return;
+  const input = document.querySelector('#mpCustomText');
+  const text = input.value.trim();
+  if (!text) return alert('Type a prompt first.');
+  const card = buildCustomCard({ text, level: document.querySelector('#mpCustomLevel').value });
+  input.value = '';
+  try {
+    await addRoomCustomCard(roomCode, card);
+  } catch (err) {
+    console.error('Add custom card failed:', err);
+    alert('Could not add the card. Check your connection.');
+  }
+};
+
 document.querySelector('#leaveRoom').onclick = () => {
   cleanupRoom();
   showScreen('start');
 };
 
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 // Init
-// ────────────────────────────────────────
+// ──────────────────────────────────────
 
 refreshPlayers();
 renderScores(state.players);
+refreshCustomCards();

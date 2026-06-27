@@ -96,6 +96,26 @@
         </div>
       </div>
 
+      <div class="panel">
+        <h3>Custom cards</h3>
+        <p class="muted-center" style="text-align:left; margin:0 0 12px">Add your own prompts. Tip: use <strong>{player}</strong> for the current player.</p>
+        <label>
+          Prompt
+          <input id="customText" type="text" maxlength="160" placeholder="e.g. {player}, do your best runway walk" />
+        </label>
+        <label style="margin-top:12px">
+          Level
+          <select id="customLevel">
+            <option value="1">L1 Icebreaker</option>
+            <option value="2">L2 Spicy</option>
+            <option value="3">L3 Freaky</option>
+            <option value="4">L4 OMG</option>
+          </select>
+        </label>
+        <button id="addCustomCard" class="secondary-btn wide" style="margin-top:12px">Add Card</button>
+        <ul id="customList" class="player-list"></ul>
+      </div>
+
       <button id="beginGame" class="primary-btn wide">Begin</button>
     </section>
 
@@ -183,6 +203,26 @@
         <div class="checks">
           <label><input id="mpAllowTarget"  type="checkbox" checked /> Allow cards that target another player</label>
           <label><input id="mpAllowContact" type="checkbox" /> Allow physical-contact cards</label>
+        </div>
+
+        <div style="margin-top:16px; border-top:1px solid var(--stroke); padding-top:16px">
+          <h3 style="margin-bottom:10px">Custom cards</h3>
+          <p class="muted-center" style="text-align:left; margin:0 0 12px">Shared with everyone in the room. Tip: use <strong>{player}</strong> for the current player.</p>
+          <label>
+            Prompt
+            <input id="mpCustomText" type="text" maxlength="160" placeholder="e.g. {player}, do your best runway walk" />
+          </label>
+          <label style="margin-top:12px">
+            Level
+            <select id="mpCustomLevel">
+              <option value="1">L1 Icebreaker</option>
+              <option value="2">L2 Spicy</option>
+              <option value="3">L3 Freaky</option>
+              <option value="4">L4 OMG</option>
+            </select>
+          </label>
+          <button id="mpAddCustomCard" class="secondary-btn wide" style="margin-top:12px">Add Card</button>
+          <ul id="mpCustomList" class="player-list"></ul>
         </div>
       </div>
 
