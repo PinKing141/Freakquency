@@ -1,0 +1,35 @@
+.card {
+  min-height: 390px;
+  padding: 24px;
+  display: grid;
+  align-content: space-between;
+  text-align: center;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 900;
+}
+
+.card-icon { font-size: 4rem; margin-top: 18px; }
+
+#cardText {
+  font-size: clamp(1.55rem, 7vw, 3.2rem);
+  line-height: 1.12;
+  font-weight: 950;
+  margin: 20px 0;
+}
+
+#cardFooter { color: rgba(255,255,255,.8); margin: 0; }
+
+.level-1 { background: linear-gradient(160deg, var(--level-1-a), var(--level-1-b)); color: var(--level-1-text); }
+.level-1 #cardFooter { color: rgba(7,30,42,.72); }
+
+.level-2 { background: linear-gradient(160deg, var(--level-2-a), var(--level-2-b)); color: #fff; }
+
+.level-3 { background: linear-gradient(160deg, var(--level-3-a), var(--level-3-b)); color: var(--level-3-text); }
+.level-3 #cardFooter { color: rgba(59,5,39,.75); }
+
+.level-4 { background: var(--level-4-bg); color: var(--level-4-text); border-color: var(--level-4-border); }
+.level-4 #cardFooter { color: #ff9adf; }

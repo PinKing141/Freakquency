@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Freakquency | Freak or Drink</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
   <main class="app-shell">
+
+    <!-- Start screen -->
     <section id="screen-start" class="screen active">
       <div class="hero-card">
         <p class="eyebrow">Freak or Drink</p>
@@ -23,6 +25,7 @@
       </div>
     </section>
 
+    <!-- Setup screen -->
     <section id="screen-setup" class="screen">
       <header class="topbar">
         <h2>Setup</h2>
@@ -79,15 +82,16 @@
         <h3>Safety settings</h3>
         <div class="checks">
           <label><input id="allowContact" type="checkbox" /> Allow physical-contact cards</label>
-          <label><input id="allowTarget" type="checkbox" checked /> Allow cards that target another player</label>
-          <label><input id="allowNever" type="checkbox" checked /> Include Never Have I Ever</label>
-          <label><input id="allowWould" type="checkbox" checked /> Include Would You Rather</label>
+          <label><input id="allowTarget"  type="checkbox" checked /> Allow cards that target another player</label>
+          <label><input id="allowNever"   type="checkbox" checked /> Include Never Have I Ever</label>
+          <label><input id="allowWould"   type="checkbox" checked /> Include Would You Rather</label>
         </div>
       </div>
 
       <button id="beginGame" class="primary-btn wide">Begin</button>
     </section>
 
+    <!-- Game screen -->
     <section id="screen-game" class="screen">
       <header class="game-header">
         <button id="backSetup" class="ghost-btn">Setup</button>
@@ -118,8 +122,9 @@
         <ul id="scoreList"></ul>
       </div>
     </section>
+
   </main>
 
-  <script src="app.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

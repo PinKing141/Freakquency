@@ -1,0 +1,27 @@
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.ghost-btn {
+  border-radius: 999px;
+  padding: 13px 18px;
+  color: white;
+  font-weight: 800;
+}
+
+.primary-btn  { background: linear-gradient(135deg, #ff4fc3, #8c47ff); }
+.secondary-btn { background: #5a2a65; }
+.danger-btn   { background: var(--danger); }
+.ghost-btn    { background: rgba(255,255,255,.1); }
+
+.wide { width: 100%; margin-top: 18px; }
+
+.game-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+@media (max-width: 680px) {
+  .game-actions { grid-template-columns: 1fr; }
+}
