@@ -1,5 +1,6 @@
 import { state } from './gameState.js';
 import { cards } from '../data/cards.js';
+import { customCards } from './customCards.js';
 import { randomTargetPhrase } from '../utils/helpers.js';
 
 // --- Solo mode helpers (read settings from DOM) ---
@@ -21,7 +22,8 @@ function cardAllowed(card, current) {
 
 export function drawCard() {
   const current = state.players[state.turn % state.players.length];
-  const allowed = cards.filter(card => cardAllowed(card, current));
+  const deck = [...cards, ...customCards];
+  const allowed = deck.filter(card => cardAllowed(card, current));
   if (!allowed.length) return null;
 
   let card = allowed[Math.floor(Math.random() * allowed.length)];
@@ -32,7 +34,7 @@ export function drawCard() {
   }
 
   state.usedCards.push(card.id);
-  if (state.usedCards.length > Math.min(cards.length, 25)) state.usedCards.shift();
+  if (state.usedCards.length > Math.min(deck.length, 25)) state.usedCards.shift();
 
   const text = card.text
     .replaceAll('{player}', current.name)
@@ -45,12 +47,13 @@ export function drawCard() {
 // --- Multiplayer mode: draws using room data, no DOM reads ---
 
 export function drawCardForRoom(room) {
-  const { players, currentPlayerIndex, usedCardIds = [], settings } = room;
+  const { players, currentPlayerIndex, usedCardIds = [], settings, customCards: roomCustom = [] } = room;
   const current = players[currentPlayerIndex];
   if (!current) return null;
 
   const maxLevel = settings.maxLevel || 4;
-  const allowed = cards.filter(card => {
+  const deck = [...cards, ...roomCustom];
+  const allowed = deck.filter(card => {
     if (card.level > maxLevel) return false;
     if (!settings.allowPhysicalCards && card.tags.includes('contact')) return false;
     if (!settings.allowTargetedCards && card.tags.includes('target')) return false;
