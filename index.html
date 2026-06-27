@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Freakquency | Freak or Drink</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section id="screen-start" class="screen active">
+      <div class="hero-card">
+        <p class="eyebrow">Freak or Drink</p>
+        <h1>Freakquency</h1>
+        <p class="tagline">A one-phone party card game for messy friends, brave answers, and safe chaos.</p>
+        <div class="name-row">
+          <span>L1 Icebreaker</span>
+          <span>L2 Spicy</span>
+          <span>L3 Freaky</span>
+          <span>L4 OMG</span>
+        </div>
+        <button id="startSetup" class="primary-btn">Start Game</button>
+      </div>
+    </section>
+
+    <section id="screen-setup" class="screen">
+      <header class="topbar">
+        <h2>Setup</h2>
+        <button id="resetAll" class="ghost-btn">Reset</button>
+      </header>
+
+      <div class="panel">
+        <h3>Add players</h3>
+        <div class="form-grid">
+          <label>
+            Player name
+            <input id="playerName" type="text" maxlength="18" placeholder="e.g. Favour" />
+          </label>
+          <label>
+            Gender
+            <select id="playerGender">
+              <option value="any">Prefer not to say / Any</option>
+              <option value="woman">Woman</option>
+              <option value="man">Man</option>
+              <option value="nonbinary">Non-binary</option>
+            </select>
+          </label>
+          <label>
+            Can receive flirt cards?
+            <select id="playerFlirt">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label>
+            Physical-contact cards?
+            <select id="playerContact">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </label>
+        </div>
+        <button id="addPlayer" class="secondary-btn">Add Player</button>
+        <ul id="playerList" class="player-list"></ul>
+      </div>
+
+      <div class="panel">
+        <h3>Card levels</h3>
+        <div class="checks">
+          <label><input type="checkbox" class="levelCheck" value="1" checked /> L1 Icebreaker</label>
+          <label><input type="checkbox" class="levelCheck" value="2" checked /> L2 Spicy</label>
+          <label><input type="checkbox" class="levelCheck" value="3" /> L3 Freaky</label>
+          <label><input type="checkbox" class="levelCheck" value="4" /> L4 OMG</label>
+        </div>
+        <p class="warning">Only play L3/L4 with adults who clearly opted in. This version avoids explicit forced sexual acts and uses pass/drink options.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Safety settings</h3>
+        <div class="checks">
+          <label><input id="allowContact" type="checkbox" /> Allow physical-contact cards</label>
+          <label><input id="allowTarget" type="checkbox" checked /> Allow cards that target another player</label>
+          <label><input id="allowNever" type="checkbox" checked /> Include Never Have I Ever</label>
+          <label><input id="allowWould" type="checkbox" checked /> Include Would You Rather</label>
+        </div>
+      </div>
+
+      <button id="beginGame" class="primary-btn wide">Begin</button>
+    </section>
+
+    <section id="screen-game" class="screen">
+      <header class="game-header">
+        <button id="backSetup" class="ghost-btn">Setup</button>
+        <div>
+          <p class="tiny">Current turn</p>
+          <h2 id="turnName">Player</h2>
+        </div>
+        <button id="newCard" class="ghost-btn">New Card</button>
+      </header>
+
+      <article id="card" class="card level-1">
+        <div class="card-meta">
+          <span id="cardLevel">L1</span>
+          <span id="cardType">Icebreaker</span>
+        </div>
+        <div id="cardIcon" class="card-icon">🧊</div>
+        <p id="cardText">Press New Card to start.</p>
+        <p id="cardFooter">Do it, answer honestly, or drink/pass.</p>
+      </article>
+
+      <div class="game-actions">
+        <button id="didIt" class="secondary-btn">Did it / Answered</button>
+        <button id="drink" class="danger-btn">Drink / Pass</button>
+      </div>
+
+      <div class="scoreboard panel compact">
+        <h3>Scoreboard</h3>
+        <ul id="scoreList"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
