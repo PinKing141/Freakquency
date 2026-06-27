@@ -1,0 +1,41 @@
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+label { color: var(--muted); display: grid; gap: 6px; font-size: .92rem; }
+
+input, select {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  padding: 12px;
+}
+
+.checks { display: grid; gap: 10px; }
+.checks label { display: flex; align-items: center; gap: 8px; }
+.checks input { width: auto; }
+
+.warning { color: #ffd1df; font-size: .9rem; }
+
+.player-list,
+#scoreList { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+
+.player-list li,
+#scoreList li {
+  background: rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.remove-player { background: transparent; color: #ffb3c7; font-weight: 800; }
+
+@media (max-width: 680px) {
+  .form-grid { grid-template-columns: 1fr; }
+}

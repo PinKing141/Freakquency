@@ -1,0 +1,11 @@
+.card { transition: transform .18s ease; }
+.card:active { transform: scale(.99); }
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card.animate-in {
+  animation: card-in .22s ease forwards;
+}

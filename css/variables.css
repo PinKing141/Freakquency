@@ -1,0 +1,23 @@
+:root {
+  --bg: #120914;
+  --panel: #221025;
+  --text: #fff4ff;
+  --muted: #d7badb;
+  --accent: #ff4fc3;
+  --accent-2: #7bdcff;
+  --danger: #ff3f5f;
+  --radius: 24px;
+  --shadow: 0 20px 50px rgba(0,0,0,.35);
+
+  --level-1-a: #b7efff;
+  --level-1-b: #5fc5ee;
+  --level-1-text: #071e2a;
+  --level-2-a: #ff314f;
+  --level-2-b: #94121f;
+  --level-3-a: #ff90cf;
+  --level-3-b: #ff4bb3;
+  --level-3-text: #3b0527;
+  --level-4-bg: #050005;
+  --level-4-text: #ff4fc3;
+  --level-4-border: #ff4fc3;
+}
