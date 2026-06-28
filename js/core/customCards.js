@@ -25,24 +25,27 @@ function newId() {
   return 'custom_' + rand;
 }
 
-// Returns a card object in the same shape as the built-in cards.
-export function buildCustomCard({ text, level }) {
+// Returns a card object in the same shape as the built-in cards. An optional
+// categoryId/categoryName files it under a player-made category (used both for
+// the on-card label and for the per-category on/off toggle in Game Settings).
+export function buildCustomCard({ text, level, categoryId = null, categoryName = null }) {
   const lvl = Number(level);
   return {
     id: newId(),
     level: lvl,
-    type: 'Custom',
+    type: categoryName || 'Custom',
     icon: LEVEL_ICON[lvl] || '✍️',
     tags: [],
     text: text.trim(),
-    custom: true
+    custom: true,
+    categoryId
   };
 }
 
 // --- Solo (localStorage) ---
 
-export function addCustomCard({ text, level }) {
-  const card = buildCustomCard({ text, level });
+export function addCustomCard({ text, level, categoryId = null, categoryName = null }) {
+  const card = buildCustomCard({ text, level, categoryId, categoryName });
   customCards.push(card);
   persist();
   return card;
