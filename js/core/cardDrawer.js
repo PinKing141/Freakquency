@@ -1,23 +1,21 @@
 import { state } from './gameState.js';
 import { cards } from '../data/cards.js';
 import { customCards } from './customCards.js';
+import { settings, isCategoryEnabled } from './settings.js';
 import { randomTargetPhrase } from '../utils/helpers.js';
 
-// --- Solo mode helpers (read settings from DOM) ---
-
-function selectedLevels() {
-  return [...document.querySelectorAll('.levelCheck:checked')].map(c => Number(c.value));
-}
+// --- Solo mode helpers (read the persisted settings object) ---
 
 function cardAllowed(card, current) {
-  if (!selectedLevels().includes(card.level)) return false;
+  if (!settings.levels[card.level]) return false;
   if (state.players.length < (card.minPlayers || 2)) return false;
-  if (card.tags.includes('contact') && !document.querySelector('#allowContact').checked) return false;
+  if (card.tags.includes('contact') && !settings.allowContact) return false;
   if (card.tags.includes('contact') && !current.contact) return false;
   if (card.tags.includes('flirt')   && !current.flirt)   return false;
-  if (!document.querySelector('#allowNever').checked  && card.text.toLowerCase().includes('never have i ever')) return false;
-  if (!document.querySelector('#allowWould').checked  && card.text.toLowerCase().includes('would you rather'))  return false;
-  if (card.tags.includes('target')  && !document.querySelector('#allowTarget').checked) return false;
+  if (!settings.allowNever && card.text.toLowerCase().includes('never have i ever')) return false;
+  if (!settings.allowWould && card.text.toLowerCase().includes('would you rather'))  return false;
+  if (card.tags.includes('target')  && !settings.allowTarget) return false;
+  if (card.categoryId && !isCategoryEnabled(card.categoryId)) return false;
   return true;
 }
 

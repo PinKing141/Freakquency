@@ -33,6 +33,7 @@ select option { background: var(--bg-2); color: var(--text); }
 
 .checks { display: grid; gap: 10px; }
 .checks label {
+  display: flex;            /* override the global label grid so box + text sit inline */
   flex-direction: row;
   align-items: center;
   gap: 10px;
