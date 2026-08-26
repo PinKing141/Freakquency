@@ -5,5 +5,7 @@ export const state = {
   turn: 0,
   usedCards: [],   // short rotation buffer that stops immediate repeats
   deadPile: [],    // cards already played — set aside face-down, not redrawn
-  currentCard: null
+  currentCard: null,
+  recentKinds: [], // short subtype history; avoids monotonous runs of cards
+  effects: { dareOnlyTurns: 0, doubleNext: false }
 };

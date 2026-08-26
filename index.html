@@ -34,6 +34,7 @@
             <button class="ghost-btn js-open-rules">How to play</button>
             <button class="ghost-btn js-open-custom">Custom Cards</button>
             <button class="ghost-btn js-open-settings">⚙ Game settings</button>
+            <button id="openFeedback" class="ghost-btn">Playtest feedback</button>
           </div>
         </div>
       </div>
@@ -278,7 +279,7 @@
           <p class="tiny">Current turn</p>
           <h2 id="turnName">Player</h2>
         </div>
-        <button id="newCard" class="ghost-btn">New Card</button>
+        <button id="newCard" class="ghost-btn">Redraw + Chaos</button>
       </header>
 
       <!-- Shown only in multiplayer -->
@@ -318,6 +319,17 @@
         <button id="didIt" class="secondary-btn">Done</button>
         <button id="drink" class="danger-btn">Drink</button>
       </div>
+      <div id="freakMeter" class="freak-meter" aria-label="Freak-o-meter">
+        <span>Freak-o-meter</span><div class="freak-meter-track"><i id="freakMeterFill"></i></div><strong id="freakMeterLabel">0%</strong>
+      </div>
+
+      <div class="feedback-row" aria-label="Rate this card for future playtests">
+        <span>Card feedback</span>
+        <button class="ghost-btn js-card-feedback" data-feedback="tame">Too tame</button>
+        <button class="ghost-btn js-card-feedback" data-feedback="good">Hit</button>
+        <button class="ghost-btn js-card-feedback" data-feedback="awkward">Awkward</button>
+        <button class="ghost-btn js-card-feedback" data-feedback="skip">Skip</button>
+      </div>
 
       <div class="pile-row">
         <button id="reshuffleCards" class="ghost-btn">🔀 Reshuffle current cards</button>
@@ -346,6 +358,17 @@
   <button id="muteToggle" class="mute-toggle" aria-label="Toggle sound" title="Toggle sound">🔊</button>
 
   <!-- 18+ gate — shown once on first launch -->
+  <div id="feedbackModal" class="modal" role="dialog" aria-modal="true" aria-label="Playtest feedback">
+    <div class="modal-card panel">
+      <button id="closeFeedback" class="ghost-btn modal-close" aria-label="Close">✕</button>
+      <h2>Playtest feedback</h2>
+      <p class="muted-center" style="text-align:left">Your device’s card ratings. Use this after a few sessions to spot weak or awkward cards.</p>
+      <ul id="feedbackSummary" class="player-list"></ul>
+      <button id="exportFeedback" class="secondary-btn wide">Download feedback JSON</button>
+      <button id="resetFeedback" class="ghost-btn wide" style="margin-top:10px">Reset feedback</button>
+    </div>
+  </div>
+
   <div id="ageModal" class="modal" role="dialog" aria-modal="true" aria-label="Age check" hidden>
     <div class="modal-card panel" style="text-align:center; max-width:440px">
       <h2>Before you play</h2>
@@ -369,6 +392,25 @@
                aria-label="After Dark intensity" />
         <div class="intensity-label"><strong id="intensityName">Spicy</strong></div>
       </div>
+
+      <h3>Quick presets</h3>
+      <div class="checks preset-row">
+        <button class="ghost-btn js-preset" data-preset="flirty">Flirty</button>
+        <button class="ghost-btn js-preset" data-preset="freaky">Freaky</button>
+        <button class="ghost-btn js-preset" data-preset="unhinged">Unhinged</button>
+        <button class="ghost-btn js-preset" data-preset="dare-night">Dare Night</button>
+      </div>
+
+      <h3>Deck pack</h3>
+      <label>
+        <select id="deckPack">
+          <option value="all">Full deck</option>
+          <option value="couples">Couples / 1-on-1</option>
+          <option value="first-date">First-Date</option>
+          <option value="no-contact">No Contact</option>
+          <option value="extreme">Extreme 1-on-1</option>
+        </select>
+      </label>
 
       <h3>Card levels</h3>
       <div class="checks">
@@ -414,6 +456,7 @@
       <p style="text-align:center">The night's verdicts, tallied from who did it and who drank.</p>
       <h3 class="endgame-heading">Final scoreboard</h3>
       <ul id="finalScoreList" class="final-scores"></ul>
+      <p id="sessionRecap" class="muted-center"></p>
       <h3 class="endgame-heading">The awards</h3>
       <ul id="awardsList" class="awards-list"></ul>
       <button id="awardsPlayAgain" class="primary-btn wide" style="margin-top:16px">Play again (reset scores)</button>

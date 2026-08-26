@@ -176,6 +176,7 @@
 .turn-timer.expired .tt-ring { stroke: var(--danger); filter: drop-shadow(0 0 8px var(--danger)); }
 .turn-timer.expired .tt-label { color: var(--danger); }
 .turn-timer.expired { animation: tt-pulse 0.5s ease-in-out infinite; }
+.turn-timer.preparing .tt-ring { stroke: var(--accent-2); filter: drop-shadow(0 0 8px var(--accent-2)); }
 @keyframes tt-pulse {
   50% { transform: translateX(-50%) scale(1.14); }
 }

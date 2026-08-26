@@ -35,6 +35,11 @@ export function weightedPool(allowed, { playerCount = 2, intensity = 2, chaos = 
       else if (card.tags.some(t => DUO_BOOST.includes(t))) copies *= 3;
     }
 
+    // At maximum After Dark, the game should feel action-led, not merely
+    // higher-level. Keep the normal mix at lower settings, but make L3/L4
+    // (and Wildcard) dares twice as likely when the meter is Unhinged.
+    if (intensity >= 5 && card.level >= 3 && card.type === 'Dare') copies *= 2;
+
     // Chaos escalation: as the meter climbs, Wildcards (level 5) crash the party.
     if (card.level === 5 && chaos >= 50) copies *= 2;
     if (card.level === 5 && chaos >= 80) copies *= 2;

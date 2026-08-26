@@ -54,7 +54,13 @@ function renderAwardsList(awards) {
 }
 
 // Fill the end-game modal with the final scoreboard + the awards.
-export function renderEndGame(players, awards) {
+export function renderEndGame(players, awards, recap = null) {
   renderFinalScores(players);
   renderAwardsList(awards);
+  const recapEl = document.querySelector('#sessionRecap');
+  if (recapEl) {
+    recapEl.textContent = recap
+      ? `${recap.cardsPlayed} cards played · ${recap.cardsDone} completed · ${recap.drinks} drinks taken · Freak-o-meter peaked at ${recap.chaos}%`
+      : '';
+  }
 }

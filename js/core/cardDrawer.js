@@ -24,12 +24,32 @@ function pick(pool, used) {
 
 // --- Solo / pass-the-phone ---
 
-export function drawCard() {
+function cardKind(card) { return card.subcategory || card.type; }
+
+export function drawCard({ level = null, onlyDare = false } = {}) {
   const current = state.players[state.turn % state.players.length];
   const deck = [...cards, ...customCards];
   // The dead pile is set aside permanently (until reshuffled), so exclude it.
-  const allowed = deck.filter(card =>
+  let allowed = deck.filter(card =>
     soloAllowed(card, settings, state.players, current) && !state.deadPile.includes(card.id));
+  if (state.effects.dareOnlyTurns) {
+    const dares = allowed.filter(card => card.type === 'Dare');
+    if (dares.length) allowed = dares;
+  }
+  if (level) {
+    const atLevel = allowed.filter(card => card.level === level);
+    if (atLevel.length) allowed = atLevel;
+  }
+  if (onlyDare) {
+    const dares = allowed.filter(card => card.type === 'Dare');
+    if (dares.length) allowed = dares;
+  }
+  // Never force a dead end, but avoid a third card from the same subtype.
+  const [previous, latest] = state.recentKinds.slice(-2);
+  if (previous && previous === latest) {
+    const varied = allowed.filter(card => cardKind(card) !== latest);
+    if (varied.length) allowed = varied;
+  }
   if (!allowed.length) return null;
 
   const pool = weightedPool(allowed, {
@@ -43,7 +63,28 @@ export function drawCard() {
   if (state.usedCards.length > Math.min(allowed.length, 25)) state.usedCards.shift();
 
   state.currentCard = card;
-  return { card, text: resolveCardText(card, current, state.players), current };
+  const kind = cardKind(card);
+  state.recentKinds.push(kind);
+  if (state.recentKinds.length > 2) state.recentKinds.shift();
+
+  const doubled = state.effects.doubleNext;
+  if (state.effects.dareOnlyTurns) state.effects.dareOnlyTurns--;
+  state.effects.doubleNext = false;
+  const shownCard = doubled
+    ? { ...card, timer: card.timer ? card.timer * 2 : 0, drink: `${card.drink || 'Drink penalty'} ×2` }
+    : card;
+  return { card: shownCard, sourceCard: card, text: resolveCardText(card, current, state.players), current };
+}
+
+// Solo-only Wildcard effects. These are applied once a Wildcard has been done.
+export function activateWildcardEffect(card) {
+  if (!card) return null;
+  if (card.id === 'fq2_wild_021') { state.effects.dareOnlyTurns = Math.max(state.effects.dareOnlyTurns, 1); return { message: 'Dare Roulette: the next draw is a dare.' }; }
+  if (card.id === 'fq2_wild_026') { state.effects.dareOnlyTurns = Math.max(state.effects.dareOnlyTurns, 3); return { message: 'Category Lock: the next 3 draws are dares.' }; }
+  if (card.id === 'fq2_wild_022') { state.effects.doubleNext = true; return { message: 'Double or Nothing: the next card’s timer or penalty is doubled.' }; }
+  if (card.id === 'fq2_wild_024') return { type: 'heat-ladder' };
+  if (card.id === 'fq2_wild_025') return { type: 'dare-swap' };
+  return null;
 }
 
 // Move the just-played card out of rotation into the face-down dead pile.

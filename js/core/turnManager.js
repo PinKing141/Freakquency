@@ -16,4 +16,6 @@ export function resetTurn() {
   state.turn = 0;
   state.usedCards = [];
   state.deadPile = [];
+  state.recentKinds = [];
+  state.effects = { dareOnlyTurns: 0, doubleNext: false };
 }

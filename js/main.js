@@ -1,12 +1,12 @@
 // ── Solo mode imports ──
 import { state } from './core/gameState.js';
 import { addPlayer, removePlayer, resetPlayers } from './core/playerManager.js';
-import { drawCard, drawCardForRoom, killCard, reshuffleCurrent } from './core/cardDrawer.js';
+import { drawCard, drawCardForRoom, killCard, reshuffleCurrent, activateWildcardEffect } from './core/cardDrawer.js';
 import { advanceTurn, resetTurn } from './core/turnManager.js';
 import { recordOutcome, resetStats } from './core/scoring.js';
 import { calculateAwards } from './core/endGame.js';
-import { increaseChaos, resetChaos } from './core/chaosMeter.js';
-import { clearPlayers, savePlayers } from './core/storage.js';
+import { increaseChaos, getChaosLevel, resetChaos } from './core/chaosMeter.js';
+import { clearPlayers, savePlayers, recordCardFeedback, getCardFeedback, clearCardFeedback } from './core/storage.js';
 import { customCards, addCustomCard, removeCustomCard, buildCustomCard } from './core/customCards.js';
 import { settings, saveSettings } from './core/settings.js';
 import { categories, addCategory, removeCategory, categoryName } from './core/categories.js';
@@ -18,6 +18,7 @@ import { renderCard, renderRoomCard } from './ui/renderCard.js';
 import { renderPlayers, renderScores } from './ui/renderPlayers.js';
 import { renderEndGame } from './ui/renderEndGame.js';
 import { escapeHtml } from './utils/helpers.js';
+import { cards } from './data/cards.js';
 
 // ── Multiplayer (Firebase) — loaded lazily ──
 // Firebase comes from a CDN, so a static import would make a network failure
@@ -212,6 +213,11 @@ function initSettingsUI() {
     timer.value = String(settings.timerSeconds || 0);
     timer.onchange = () => { settings.timerSeconds = Number(timer.value) || 0; saveSettings(); };
   }
+  const deckPack = document.querySelector('#deckPack');
+  if (deckPack) {
+    deckPack.value = settings.deckPack || 'all';
+    deckPack.onchange = () => { settings.deckPack = deckPack.value; saveSettings(); };
+  }
   renderSettingsCategories();
 }
 
@@ -229,6 +235,17 @@ function refreshDeadPile() {
   if (pile)  pile.hidden = mpMode || n === 0;
 }
 
+function refreshFreakMeter() {
+  const meter = document.querySelector('#freakMeter');
+  const fill = document.querySelector('#freakMeterFill');
+  const label = document.querySelector('#freakMeterLabel');
+  if (!meter || !fill || !label) return;
+  const value = mpMode ? 0 : getChaosLevel();
+  meter.hidden = mpMode;
+  fill.style.width = `${value}%`;
+  label.textContent = `${value}%`;
+}
+
 // Shared "time's up" handler: buzz and nudge the player to drink/pass.
 function onTimerExpire() {
   soundBuzz();
@@ -236,13 +253,15 @@ function onTimerExpire() {
   if (footer) footer.textContent = '⏰ Time\'s up — drink or pass!';
 }
 
-function handleDrawCard() {
+function handleDrawCard(options = {}) {
   if (state.players.length < 2) return alert('Add at least 2 players.');
-  const result = drawCard();
+  const result = drawCard(options);
   if (!result) return alert('No cards match these settings. Turn on more levels or update players.');
   renderCard(result);
+  refreshFreakMeter();
   // A card's own timer (timed dares) wins over the turn-timer setting.
-  startTimer(result.card.timer || soloTimerSeconds(), onTimerExpire);
+  const cardTimer = result.card.timer || 0;
+  startTimer(cardTimer || soloTimerSeconds(), onTimerExpire, { prepareSeconds: cardTimer ? 5 : 0 });
 }
 
 function handleNextTurn(scored) {
@@ -267,8 +286,22 @@ function handleNextTurn(scored) {
 
   // The card that was on screen is done — set it aside in the dead pile.
   if (card) { killCard(card.id); refreshDeadPile(); }
+  const effect = scored ? activateWildcardEffect(card) : null;
   advanceTurn();
   renderScores(state.players);
+  refreshFreakMeter();
+  if (effect?.message) alert(effect.message);
+  if (effect?.type === 'heat-ladder') {
+    const level = confirm('Heat Ladder: press OK for an L4 OMG card, or Cancel for an L3 Freaky card.') ? 4 : 3;
+    return handleDrawCard({ level });
+  }
+  if (effect?.type === 'dare-swap') {
+    const names = state.players.map(player => player.name).join(', ');
+    const chosen = prompt(`Dare Swap: who takes the next dare?\n${names}`)?.trim().toLowerCase();
+    const targetIndex = state.players.findIndex(player => player.name.toLowerCase() === chosen);
+    if (targetIndex >= 0) state.turn = targetIndex;
+    return handleDrawCard({ onlyDare: true });
+  }
   handleDrawCard();
 }
 
@@ -299,7 +332,8 @@ function onRoomUpdate(room) {
       renderRoomCard(room.currentCard);
       if (room.currentCard.id !== lastRoomCardId) {
         lastRoomCardId = room.currentCard.id;
-        startTimer(room.currentCard.timer || (room.settings && room.settings.timerSeconds) || 0, onTimerExpire);
+        const cardTimer = room.currentCard.timer || 0;
+        startTimer(cardTimer || (room.settings && room.settings.timerSeconds) || 0, onTimerExpire, { prepareSeconds: cardTimer ? 5 : 0 });
       }
     }
     renderMultiplayerScores(room.players);
@@ -473,6 +507,25 @@ document.querySelectorAll('.js-open-settings').forEach(b => b.addEventListener('
 document.querySelectorAll('.js-open-custom').forEach(b => b.addEventListener('click', () => showScreen('custom')));
 document.querySelectorAll('.js-open-rules').forEach(b => b.addEventListener('click', () => document.querySelector('#rulesModal').classList.add('open')));
 
+const PRESETS = {
+  flirty: { intensity: 1, levels: [1, 2], contact: false, pack: 'all' },
+  freaky: { intensity: 3, levels: [1, 2, 3], contact: true, pack: 'all' },
+  unhinged: { intensity: 5, levels: [3, 4, 5], contact: true, pack: 'all' },
+  'dare-night': { intensity: 5, levels: [3, 4, 5], contact: true, pack: 'extreme' }
+};
+document.querySelectorAll('.js-preset').forEach(button => {
+  button.onclick = () => {
+    const preset = PRESETS[button.dataset.preset];
+    if (!preset) return;
+    settings.intensity = preset.intensity;
+    settings.allowContact = preset.contact;
+    settings.deckPack = preset.pack;
+    [1, 2, 3, 4, 5].forEach(level => { settings.levels[level] = preset.levels.includes(level); });
+    saveSettings();
+    initSettingsUI();
+  };
+});
+
 document.querySelector('#closeSettings').onclick = closeSettings;
 document.querySelector('#settingsDone').onclick  = closeSettings;
 settingsModal.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
@@ -495,7 +548,13 @@ document.querySelector('#reshuffleCards').onclick = () => {
 
 document.querySelector('#newCard').onclick = () => {
   if (mpMode) handleMpDraw();
-  else handleDrawCard();
+  else {
+    if (state.currentCard) killCard(state.currentCard.id);
+    increaseChaos('pass');
+    refreshDeadPile();
+    refreshFreakMeter();
+    handleDrawCard();
+  }
 };
 
 document.querySelector('#didIt').onclick = () => {
@@ -507,6 +566,46 @@ document.querySelector('#drink').onclick = () => {
   soundDrink();
   if (mpMode) handleMpNextTurn(true);
   else handleNextTurn(false);
+};
+
+document.querySelectorAll('.js-card-feedback').forEach(button => {
+  button.onclick = () => {
+    const cardId = mpMode ? roomData?.currentCard?.id : state.currentCard?.id;
+    if (!cardId) return;
+    recordCardFeedback(cardId, button.dataset.feedback);
+    const originalLabel = button.textContent;
+    button.textContent = 'Saved';
+    setTimeout(() => { button.textContent = originalLabel; }, 900);
+  };
+});
+
+const feedbackModal = document.querySelector('#feedbackModal');
+function renderFeedbackSummary() {
+  const list = document.querySelector('#feedbackSummary');
+  const feedback = getCardFeedback();
+  const rows = Object.entries(feedback)
+    .map(([id, scores]) => ({ id, scores, total: Object.values(scores).reduce((sum, value) => sum + value, 0) }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 20);
+  list.innerHTML = rows.length ? '' : '<li>No ratings yet. Rate cards while you play.</li>';
+  rows.forEach(({ id, scores }) => {
+    const li = document.createElement('li');
+    const card = cards.find(item => item.id === id);
+    li.textContent = `${card ? card.text : id} — Hit ${scores.good} · Too tame ${scores.tame} · Awkward ${scores.awkward} · Skip ${scores.skip}`;
+    list.appendChild(li);
+  });
+}
+document.querySelector('#openFeedback').onclick = () => { renderFeedbackSummary(); feedbackModal.classList.add('open'); };
+document.querySelector('#closeFeedback').onclick = () => feedbackModal.classList.remove('open');
+feedbackModal.addEventListener('click', event => { if (event.target === feedbackModal) feedbackModal.classList.remove('open'); });
+document.querySelector('#resetFeedback').onclick = () => { if (confirm('Reset all local playtest feedback?')) { clearCardFeedback(); renderFeedbackSummary(); } };
+document.querySelector('#exportFeedback').onclick = () => {
+  const blob = new Blob([JSON.stringify(getCardFeedback(), null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'freakquency-card-feedback.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
 };
 
 document.querySelector('#resetAll').onclick = () => {
@@ -535,7 +634,13 @@ if (scoreToggle && scoreDrawer) {
 const awardsModal = document.querySelector('#awardsModal');
 function openAwards() {
   const players = mpMode && roomData ? roomData.players : state.players;
-  renderEndGame(players || [], calculateAwards(players || []));   // see ui/renderEndGame.js
+  const recap = mpMode ? null : {
+    cardsPlayed: state.deadPile.length,
+    cardsDone: state.players.reduce((sum, player) => sum + (player.dids || 0), 0),
+    drinks: state.players.reduce((sum, player) => sum + (player.drinks || 0), 0),
+    chaos: getChaosLevel()
+  };
+  renderEndGame(players || [], calculateAwards(players || []), recap);   // see ui/renderEndGame.js
   awardsModal.classList.add('open');
 }
 function closeAwards() { awardsModal.classList.remove('open'); }
